@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#0f1117">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ЕГЭ 2026">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='96' fill='%230f1117'/%3E%3Ctext x='256' y='330' font-family='sans-serif' font-size='260' text-anchor='middle'%3E%F0%9F%8E%93%3C/text%3E%3C/svg%3E">
+<title>🎓 ЕГЭ Трекер 2026</title>
+<style>
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+:root {
+  --bg: #0f1117; --card: #1a1d27; --card2: #22263a; --border: #2c3149;
+  --txt: #e8eaf2; --muted: #8b91a8; --accent: #6c8cff;
+  --ok: #3ddc84; --warn: #ffb020; --bad: #ff5c7a; --gold: #ffd700; --purple: #a78bfa;
+}
+html, body { margin:0; padding:0; height:100%; overscroll-behavior:none; }
+body {
+  background: var(--bg); color: var(--txt);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 15px; line-height: 1.4;
+  padding-bottom: calc(64px + env(safe-area-inset-bottom));
+  padding-top: env(safe-area-inset-top);
+}
+button { font-family: inherit; color: inherit; cursor: pointer; }
+#topbar {
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(15,17,23,0.92); backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+  padding: calc(10px + env(safe-area-inset-top)) 14px 10px 14px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.brand { font-weight: 700; font-size: 15px; }
+.top-right { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 600; }
+#streak { color: var(--gold); }
+#days { color: var(--warn); }
+.icon-btn { background: var(--card2); border: 0; border-radius: 8px; padding: 6px 10px; font-size: 15px; }
+#nav {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: rgba(15,17,23,0.96); backdrop-filter: blur(10px);
+  border-top: 1px solid var(--border);
+  display: flex; z-index: 100;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+#nav button {
+  flex: 1; background: transparent; border: 0; padding: 8px 4px 10px;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  color: var(--muted); font-size: 10px; font-weight: 600;
+}
+#nav button i { font-style: normal; font-size: 20px; }
+#nav button.active { color: var(--accent); }
+#view { padding: 12px 12px 24px; max-width: 640px; margin: 0 auto; }
+.tabs { display: flex; gap: 6px; margin-bottom: 10px; overflow-x: auto; }
+.tabs button {
+  background: var(--card2); border: 0; border-radius: 10px;
+  padding: 8px 14px; font-size: 13px; font-weight: 600;
+  color: var(--muted); white-space: nowrap;
+}
+.tabs button.active { background: var(--accent); color: #fff; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 10px; }
+.score-card { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.score-card .label { font-size: 13px; color: var(--muted); }
+.score-card .value { font-size: 26px; font-weight: 800; }
+.stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 6px; margin-bottom: 10px; }
+.stat { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 8px 4px; text-align: center; cursor: pointer; transition: border-color .15s; }
+.stat.active { border-color: var(--accent); }
+.stat .v { font-size: 18px; font-weight: 800; }
+.stat .l { font-size: 10px; color: var(--muted); margin-top: 2px; }
+.stat.know .v { color: var(--ok); } .stat.learn .v { color: var(--warn); }
+.stat.weak .v { color: var(--bad); } .stat.none .v { color: var(--muted); }
+.bar-wrap { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; margin-bottom: 10px; }
+.bar { height: 12px; border-radius: 6px; overflow: hidden; display: flex; background: #141824; }
+.bar > span { display: block; height: 100%; }
+.bar-info { font-size: 11px; color: var(--muted); margin-top: 6px; }
+.row { display: flex; gap: 8px; margin-bottom: 10px; align-items: center; }
+.row select, .row input { background: var(--card); border: 1px solid var(--border); color: var(--txt); border-radius: 8px; padding: 8px 10px; font-size: 13px; font-family: inherit; flex: 1; min-width: 0; }
+.task { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 10px; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; transition: border-color .15s; }
+.task.know { border-color: var(--ok); } .task.learn { border-color: var(--warn); } .task.weak { border-color: var(--bad); }
+.task .num { background: var(--card2); color: var(--txt); width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; flex-shrink: 0; }
+.task .info { flex: 1; min-width: 0; cursor: pointer; }
+.task .title { font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.task .meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.task .note-preview { font-size: 11px; color: var(--purple); font-style: italic; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.task .actions { display: flex; gap: 2px; flex-shrink: 0; }
+.task .actions button { background: transparent; border: 0; padding: 6px 7px; font-size: 18px; border-radius: 6px; opacity: 0.35; }
+.task .actions button.active { opacity: 1; background: var(--card2); }
+.btn { background: var(--card2); border: 0; border-radius: 10px; padding: 10px 14px; font-size: 13px; font-weight: 600; color: var(--txt); }
+.btn.primary { background: var(--accent); color: #fff; }
+.btn.danger { color: var(--bad); }
+.btn.full { width: 100%; }
+.btn-row { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+.goal-card { background: var(--card); border: 1px solid var(--border); border-left-width: 4px; border-radius: 12px; padding: 12px; margin-bottom: 8px; }
+.goal-card.reached { border-left-color: var(--ok); }
+.goal-card.close { border-left-color: var(--warn); }
+.goal-card.medium { border-left-color: var(--gold); }
+.goal-card.far { border-left-color: var(--bad); }
+.goal-card.unavailable { border-left-color: var(--muted); }
+.goal-card .top { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
+.goal-card .name { font-size: 13px; font-weight: 700; }
+.goal-card .prog { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.goal-card .status { font-size: 12px; font-weight: 700; margin-top: 6px; }
+.goal-card .bar { margin-top: 8px; height: 8px; }
+.goal-card .recs { font-size: 11px; color: var(--muted); margin-top: 8px; }
+.goal-card .recs div { padding: 2px 0; }
+.mock-chart { width: 100%; height: 80px; margin: 6px 0; }
+.mock-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; padding: 3px 0; color: var(--muted); }
+.ach-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.ach { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 10px; display: flex; gap: 8px; }
+.ach.unlocked { border-color: var(--gold); }
+.ach.locked { opacity: 0.5; }
+.ach .icon { font-size: 20px; }
+.ach .name { font-size: 12px; font-weight: 700; }
+.ach .desc { font-size: 10px; color: var(--muted); }
+#modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; padding: calc(16px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom)) 16px; z-index: 1000; }
+#modal.hidden { display: none; }
+.modal-box { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; width: 100%; max-width: 440px; max-height: 90vh; overflow-y: auto; }
+.modal-box h3 { margin: 0 0 10px; font-size: 16px; }
+.modal-box textarea { width: 100%; min-height: 140px; background: var(--bg); color: var(--txt); border: 1px solid var(--border); border-radius: 8px; padding: 10px; font-family: inherit; font-size: 14px; resize: vertical; }
+.modal-box label { font-size: 12px; color: var(--muted); display: block; margin: 10px 0 4px; }
+.modal-box input, .modal-box select { width: 100%; background: var(--bg); color: var(--txt); border: 1px solid var(--border); border-radius: 8px; padding: 10px; font-family: inherit; font-size: 14px; }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; }
+.timer-time { font-family: ui-monospace, "SF Mono", Consolas, monospace; font-size: 56px; font-weight: 800; text-align: center; color: var(--accent); margin: 10px 0; }
+.timer-modes { display: flex; gap: 6px; justify-content: center; margin: 10px 0; }
+.timer-modes button { background: var(--card2); border: 0; border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.timer-modes button.active { background: var(--accent); color: #fff; }
+.timer-actions { display: flex; gap: 8px; justify-content: center; margin-top: 12px; }
+.timer-status { text-align: center; font-size: 12px; color: var(--muted); margin-top: 10px; min-height: 16px; }
+.muted { color: var(--muted); font-size: 12px; }
+.center { text-align: center; padding: 20px 0; color: var(--muted); }
+h2 { font-size: 15px; margin: 14px 0 8px; }
+h2:first-child { margin-top: 4px; }
+</style>
+</head>
+<body>
+<header id="topbar">
+  <div class="brand">🎓 <span>ЕГЭ 2026</span></div>
+  <div class="top-right">
+    <span id="streak">🔥 0</span>
+    <span id="days">⏳ 0</span>
+    <button id="timerBtn" class="icon-btn">⏱</button>
+  </div>
+</header>
+<main id="view"></main>
+<nav id="nav">
+  <button data-view="tasks" class="active"><i>📋</i><span>Задания</span></button>
+  <button data-view="goals"><i>🎯</i><span>Цели</span></button>
+  <button data-view="mocks"><i>📝</i><span>Пробники</span></button>
+  <button data-view="summary"><i>📊</i><span>Сводка</span></button>
+</nav>
+<div id="modal" class="hidden"><div class="modal-box" id="modalBox"></div></div>
+
+<script>
+// ===================== МАНИФЕСТ (генерируется на ходу) =====================
+(function() {
+  const iconSvg = "data:image/svg+xml," + encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+      <rect width="512" height="512" rx="96" fill="#0f1117"/>
+      <text x="256" y="340" font-family="sans-serif" font-size="280" text-anchor="middle">🎓</text>
+    </svg>`
+  );
+  const manifest = {
+    name: "ЕГЭ Трекер 2026",
+    short_name: "ЕГЭ 2026",
+    start_url: ".",
+    scope: ".",
+    display: "standalone",
+    orientation: "portrait",
+    background_color: "#0f1117",
+    theme_color: "#0f1117",
+    lang: "ru",
+    icons: [
+      { src: iconSvg, sizes: "512x512", type: "image/svg+xml", purpose: "any maskable" }
+    ]
+  };
+  try {
+    const blob = new Blob([JSON.stringify(manifest)], { type: "application/manifest+json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("link");
+    link.rel = "manifest";
+    link.href = url;
+    document.head.appendChild(link);
+  } catch (e) {}
+})();
+
+// ===================== ДАННЫЕ =====================
+const INF_SCALE  = [0,7,14,20,27,34,40,43,46,48,51,54,56,59,62,64,67,70,72,75,78,80,83,85,88,90,93,95,98,100];
+const MATH_SCALE = [0,6,11,17,22,27,34,40,46,52,58,64,70,72,74,76,78,80,82,84,86,88,90,92,94,95,96,97,98,99,100,100,100];
+const RUS_SCALE  = [0,3,5,8,10,12,15,17,20,22,24,27,29,32,34,36,37,39,40,42,43,45,46,48,49,51,52,54,55,57,58,60,61,63,64,66,67,69,70,72,73,75,78,81,83,86,89,91,94,97,100];
+
+const INF_TASKS = {
+  1:["Анализ информации в таблицах",1],2:["Логика и алгебра высказываний",1],
+  3:["Файлы и файловые системы",1],4:["Кодирование и передача данных",1],
+  5:["Алгоритмы и исполнители",1],6:["Чертёжник / Робот",1],
+  7:["Кодирование звука и изображения",1],8:["Поиск в базе данных",1],
+  9:["Электронные таблицы",1],10:["Поиск слова по маске",1],
+  11:["Обработка больших массивов",1],12:["Обработка текста в редакторе",1],
+  13:["Адресация в сетях (IP, маски)",1],14:["Системы счисления",1],
+  15:["Алгоритмы с условиями",1],16:["Рекурсивные алгоритмы",1],
+  17:["Числовые последовательности",1],18:["Робот на поле",1],
+  19:["Игра с кучей камней (1 куча)",1],20:["Игра с камнями (2 хода)",1],
+  21:["Игра с камнями (мин. S)",1],22:["Таблица процессов (Гант)",1],
+  23:["Исполнитель с переменными",1],24:["Обработка строк",1],
+  25:["Обработка целых чисел",1],26:["Максимальная подходящая пара",2],
+  27:["Программа с большим объёмом данных",2],
+};
+const MATH_TASKS = {
+  1:["Проценты, практические вычисления",1],2:["Графики и диаграммы",1],
+  3:["Планиметрия (простые задачи)",1],4:["Вероятность",1],
+  5:["Простейшие уравнения",1],6:["Стереометрия (теоремы, формулы)",1],
+  7:["Производная, касательная",1],8:["Задача по формулам (движение)",1],
+  9:["Текстовые задачи (скорость, работа)",1],10:["Тригонометрия, графики",1],
+  11:["Свойства функций, корни",1],12:["Вычисление выражений (степени, логарифмы)",1],
+  13:["Уравнения (триг., показ., лог.)",2],14:["Стереометрия (объёмы, площади)",3],
+  15:["Финансовая математика",2],16:["Планиметрия (развёрнутая)",2],
+  17:["Неравенства",3],18:["Исследование функции / оптимизация",4],
+  19:["Задача с параметром",4],
+};
+const RUS_TASKS = {
+  1:["Синонимы к слову из текста",1],2:["Стилистическое соответствие",1],
+  3:["Пунктуация: ССП",1],4:["Пунктуация: однородные члены",1],
+  5:["Пунктуация: обособленные члены",1],6:["Пунктуация: вводные слова",1],
+  7:["Средства связи предложений",1],8:["Орфоэпические нормы",2],
+  9:["Ударения",1],10:["Паронимы",1],11:["Лексические нормы",1],
+  12:["Морфологические нормы",1],13:["Синтаксические нормы",1],
+  14:["Грамматические формы слова",1],15:["Орфография: Н и НН",1],
+  16:["Разделительные Ъ и Ь",1],17:["Проверяемые безударные гласные",1],
+  18:["О/Ё после шипящих (склонение)",1],19:["НЕ с глаголами",1],
+  20:["НЕ с наречиями",1],21:["Слитно / раздельно / дефис",1],
+  22:["Работа с текстом (2 балла)",2],23:["Комментарий к тексту",1],
+  24:["Речевая ошибка",1],25:["Средства связи (обоснование)",1],
+  26:["Средства выразительности речи",1],27:["СОЧИНЕНИЕ (22 балла)",22],
+};
+
+const SUBJECTS = {
+  math: { name:"📐 Профмат",     tasks:MATH_TASKS, scale:MATH_SCALE, maxPrimary:32, pass:40 },
+  rus:  { name:"📖 Русский",      tasks:RUS_TASKS,  scale:RUS_SCALE,  maxPrimary:50, pass:40 },
+  inf:  { name:"🖥️ Информатика", tasks:INF_TASKS,  scale:INF_SCALE,  maxPrimary:29, pass:46 },
+};
+
+const UNIVERSITIES = {
+  "НГТУ НЭТИ": {
+    programs: [
+      {code:"09.03.01", name:"Информатика и вычислительная техника", budget:237, paid:143, cost:211300},
+      {code:"09.03.02", name:"Информационные системы и технологии",  budget:246, paid:147, cost:289000},
+      {code:"09.03.03", name:"Прикладная информатика",               budget:246, paid:158, cost:225300},
+      {code:"09.03.04", name:"Программная инженерия",                budget:266, paid:155, cost:289000},
+      {code:"10.03.01", name:"Информационная безопасность",          budget:236, paid:137, cost:236600},
+      {code:"27.03.04", name:"Управление в технических системах",    budget:218, paid:129, cost:225300},
+    ]
+  },
+  "НГУ": {
+    programs: [
+      {code:"02.03.01", name:"Математика и компьютерные науки",   budget:239, paid:0, cost:241500},
+      {code:"09.03.01", name:"Информатика и ВТ (ПИиКН)",          budget:250, paid:0, cost:241500},
+      {code:"01.03.02", name:"Прикладные математика и физика",    budget:233, paid:0, cost:241500},
+      {code:"01.03.01", name:"Математика и механика",             budget:223, paid:0, cost:241500},
+    ]
+  },
+  "СибГУТИ": {
+    programs: [
+      {code:"09.03.02", name:"Информационные системы и технологии", budget:224, paid:115, cost:195000},
+      {code:"10.05.02", name:"Управление безопасностью телекоммуникационных систем", budget:182, paid:103, cost:149940},
+      {code:"11.03.02", name:"Инфокоммуникационные технологии и системы связи", budget:0, paid:0, cost:149940},
+    ]
+  },
+  "СГУГиТ": {
+    programs: [
+      {code:"09.03.02", name:"Информационные системы и технологии", budget:170, paid:0, cost:0},
+    ]
+  },
+  "НГАСУ (Сибстрин)": {
+    programs: [
+      {code:"09.03.03", name:"Прикладная информатика в архитектуре", budget:171, paid:0, cost:0},
+      {code:"09.03.02", name:"Информационные системы и технологии", budget:172, paid:0, cost:0},
+    ]
+  },
+  "НГУЭУ": {
+    programs: [
+      {code:"09.03.03", name:"Прикладная информатика и бизнес-анализ", budget:193, paid:0, cost:0},
+    ]
+  },
+};
+
+const STATUS_META = {
+  know:  { sym:"✅", label:"Умею",     color:"--ok" },
+  learn: { sym:"📈", label:"Потянуть", color:"--warn" },
+  weak:  { sym:"❌", label:"Не знаю",   color:"--bad" },
+  none:  { sym:"⚪", label:"—",         color:"--muted" },
+};
+
+// ===================== ХРАНИЛИЩЕ =====================
+const LS_KEY = "ege_pro_tracker_v1";
+function blankData() {
+  return {
+    state:   { math:{}, rus:{}, inf:{} },
+    notes:   { math:{}, rus:{}, inf:{} },
+    studyLog:[],
+    mocks:   [],
+    streak:  { last:null, count:0 },
+    goals:   { active:[] },
+  };
+}
+function loadData() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return blankData();
+    const d = JSON.parse(raw);
+    const base = blankData();
+    base.state   = { math:{}, rus:{}, inf:{}, ...(d.state || {}) };
+    base.notes   = { math:{}, rus:{}, inf:{}, ...(d.notes || {}) };
+    base.studyLog= Array.isArray(d.studyLog) ? d.studyLog : [];
+    base.mocks   = Array.isArray(d.mocks)    ? d.mocks    : [];
+    base.streak  = d.streak || { last:null, count:0 };
+    base.goals   = d.goals  || { active:[] };
+    return base;
+  } catch (e) { return blankData(); }
+}
+function saveData() {
+  try { localStorage.setItem(LS_KEY, JSON.stringify(data)); } catch (e) {}
+}
+
+// ===================== ЯДРО =====================
+function estPrimary(subj, state) {
+  let total = 0;
+  const tasks = SUBJECTS[subj].tasks;
+  for (const [n, st] of Object.entries(state || {})) {
+    const t = tasks[n];
+    if (!t) continue;
+    const pts = t[1];
+    if (st === "know")  total += pts;
+    else if (st === "learn") total += pts / 2;
+  }
+  return total;
+}
+function testScore(subj, state) {
+  let p = Math.round(estPrimary(subj, state));
+  const max = SUBJECTS[subj].maxPrimary;
+  p = Math.max(0, Math.min(p, max));
+  return SUBJECTS[subj].scale[p];
+}
+function counts(state, tasks) {
+  const c = { know:0, learn:0, weak:0, none:0 };
+  for (const n of Object.keys(tasks)) {
+    const s = (state || {})[n];
+    if (s === "know" || s === "learn" || s === "weak") c[s]++;
+    else c.none++;
+  }
+  return c;
+}
+function daysUntilExam() {
+  const today = new Date();
+  let exam = new Date(today.getFullYear(), 4, 25);
+  if (exam <= today) exam = new Date(today.getFullYear() + 1, 4, 25);
+  return Math.ceil((exam - today) / 86400000);
+}
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+function registerStudyDay() {
+  const today = todayStr();
+  const st = data.streak;
+  if (st.last === today) return;
+  const y = new Date(); y.setDate(y.getDate() - 1);
+  const yStr = `${y.getFullYear()}-${String(y.getMonth()+1).padStart(2,"0")}-${String(y.getDate()).padStart(2,"0")}`;
+  if (st.last === yStr) st.count = (st.count || 0) + 1;
+  else st.count = 1;
+  st.last = today;
+}
+function totalStudySeconds(subject, sinceDate) {
+  let total = 0;
+  for (const it of data.studyLog) {
+    if (subject && it.subject !== subject) continue;
+    if (sinceDate && (it.date || "") < sinceDate) continue;
+    total += it.seconds || 0;
+  }
+  return total;
+}
+function fmtDuration(sec) {
+  sec = Math.floor(sec);
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  if (h > 0) return `${h} ч ${m} мин`;
+  return `${m} мин`;
+}
+function goalGap(scores, goal) {
+  const univ = UNIVERSITIES[goal.univ];
+  if (!univ) return [0,0,0,"unknown"];
+  const prog = univ.programs.find(p => p.code === goal.code);
+  if (!prog) return [0,0,0,"unknown"];
+  const current = Object.values(scores).reduce((a,b)=>a+b, 0);
+  const needed = prog[goal.type];
+  if (needed <= 0) return [current, needed, 0, "unavailable"];
+  const diff = needed - current;
+  const status = diff <= 0 ? "reached" : diff <= 20 ? "close" : diff <= 50 ? "medium" : "far";
+  return [current, needed, diff, status];
+}
+function goalRecommendations(scores, goal) {
+  const univ = UNIVERSITIES[goal.univ];
+  if (!univ) return [];
+  const prog = univ.programs.find(p => p.code === goal.code);
+  if (!prog || prog[goal.type] <= 0) return [];
+  const deficit = prog[goal.type] - Object.values(scores).reduce((a,b)=>a+b, 0);
+  if (deficit <= 0) return [];
+  const recs = [];
+  for (const [subjKey, meta] of Object.entries(SUBJECTS)) {
+    const st = data.state[subjKey] || {};
+    const cands = [];
+    for (const [n, [topic, pts]] of Object.entries(meta.tasks)) {
+      const s = st[n];
+      if (s === "know") continue;
+      const gain = s === "learn" ? pts / 2 : pts;
+      cands.push({ n:+n, topic, pts, gain, status: s || "none" });
+    }
+    cands.sort((a,b) => b.gain - a.gain);
+    let total = 0;
+    for (const c of cands) {
+      if (total >= deficit) break;
+      total += c.gain;
+      recs.push({ subject: meta.name, subjKey, ...c });
+    }
+  }
+  return recs;
+}
+function computeAchievements() {
+  const A = [];
+  const states = data.state;
+  let totalKnow = 0;
+  for (const k of Object.keys(SUBJECTS)) totalKnow += counts(states[k], SUBJECTS[k].tasks).know;
+  const anyMarked = Object.values(states).some(s => Object.keys(s).length > 0);
+  const allKnowFull = Object.keys(SUBJECTS).some(k =>
+    counts(states[k], SUBJECTS[k].tasks).know === Object.keys(SUBJECTS[k].tasks).length);
+  const scores = {};
+  for (const k of Object.keys(SUBJECTS)) scores[k] = testScore(k, states[k]);
+  const totalTime = totalStudySeconds();
+  const streak = data.streak.count || 0;
+  A.push(["🎯", "Первый шаг",    "Отметить хотя бы одну задачу", anyMarked]);
+  A.push(["🔥", "Разогрев",      "10 задач на «✅ Умею»",         totalKnow >= 10]);
+  A.push(["🧠", "Знаток",        "50 задач на «✅ Умею»",         totalKnow >= 50]);
+  A.push(["📚", "Всезнайка",     "Все задачи одного предмета",    allKnowFull]);
+  A.push(["💪", "Марафонец",     "7 дней занятий подряд",         streak >= 7]);
+  A.push(["⏱️", "Трудяга",       "10 часов учёбы",                totalTime >= 10*3600]);
+  A.push(["📈", "Прорыв",        "70+ баллов в любом предмете",   Object.values(scores).some(s => s >= 70)]);
+  A.push(["🏆", "Отличник",      "80+ баллов в любом предмете",   Object.values(scores).some(s => s >= 80)]);
+  let goalClose = false, goalReached = false;
+  for (const g of data.goals.active) {
+    const [, , diff, status] = goalGap(scores, g);
+    if (status === "reached") goalReached = true;
+    if (diff <= 20 && status !== "unavailable") goalClose = true;
+  }
+  A.push(["🎓", "Цель рядом",       "До цели ≤ 20 баллов",     goalClose || goalReached]);
+  A.push(["✅", "Цель достигнута",  "Прогноз дотянул до цели", goalReached]);
+  return A;
+}
+function pickNextTask() {
+  const cands = [];
+  for (const [subj, meta] of Object.entries(SUBJECTS)) {
+    const st = data.state[subj] || {};
+    for (const [n, [topic, pts]] of Object.entries(meta.tasks)) {
+      const status = st[n] || "none";
+      if (status === "know") continue;
+      const prio = { weak:0, none:1, learn:2 }[status];
+      cands.push({ subj, subjectName: meta.name, n:+n, topic, pts, status, score: prio*100 - pts*10 });
+    }
+  }
+  if (!cands.length) return null;
+  cands.sort((a,b) => a.score - b.score);
+  return cands[0];
+}
+
+// ===================== UI STATE =====================
+let data = loadData();
+const ui = { view:"tasks", subject:"math", filter:"all", sort:"num", query:"" };
+function esc(s) { return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function statusColor(score, pass) {
+  if (score >= pass) return "var(--ok)";
+  if (score >= pass * 0.6) return "var(--warn)";
+  return "var(--bad)";
+}
+function updateHeader() {
+  document.getElementById("days").textContent = `⏳ ${daysUntilExam()} дн.`;
+  document.getElementById("streak").textContent = `🔥 ${data.streak.count || 0}`;
+}
+
+// ===================== RENDER: TASKS =====================
+function renderTasks() {
+  const subj = ui.subject;
+  const meta = SUBJECTS[subj];
+  const state = data.state[subj] || {};
+  const tasks = meta.tasks;
+  const c = counts(state, tasks);
+  const score = testScore(subj, state);
+
+  const subjTabs = Object.entries(SUBJECTS).map(([k, m]) =>
+    `<button data-action="setSubject" data-subj="${k}" class="${k===subj?"active":""}">${m.name}</button>`
+  ).join("");
+
+  const totalTasks = Object.keys(tasks).length;
+  const barKnow = c.know / totalTasks * 100;
+  const barLearn = c.learn / totalTasks * 100;
+  const barWeak = c.weak / totalTasks * 100;
+  const prim = estPrimary(subj, state);
+
+  let order = Object.keys(tasks).map(Number);
+  if (ui.sort === "weight") order.sort((a,b) => tasks[b][1] - tasks[a][1]);
+  else if (ui.sort === "status") {
+    const prio = { weak:0, learn:1, none:2, know:3 };
+    order.sort((a,b) => (prio[state[a] || "none"] - prio[state[b] || "none"]) || a - b);
+  } else order.sort((a,b) => a - b);
+
+  const rows = [];
+  for (const n of order) {
+    const st = state[n] || "none";
+    if (ui.filter !== "all" && st !== ui.filter) continue;
+    const [topic, pts] = tasks[n];
+    if (ui.query && !topic.toLowerCase().includes(ui.query)) continue;
+    const note = (data.notes[subj] || {})[n] || "";
+    const scale = meta.scale[Math.min(pts, meta.maxPrimary)];
+    rows.push(`
+      <div class="task ${st}" data-num="${n}">
+        <div class="num">${n}</div>
+        <div class="info" data-action="editNote" data-num="${n}">
+          <div class="title">${esc(topic)}${note?" 📝":""}</div>
+          <div class="meta">${pts} перв. · ≈${scale} тест.</div>
+          ${note ? `<div class="note-preview">${esc(note)}</div>` : ""}
+        </div>
+        <div class="actions">
+          ${["know","learn","weak"].map(s =>
+            `<button data-action="mark" data-num="${n}" data-st="${s}" class="${st===s?"active":""}">${STATUS_META[s].sym}</button>`
+          ).join("")}
+        </div>
+      </div>`);
+  }
+
+  return `
+    <div class="tabs">${subjTabs}</div>
+    <div class="card score-card">
+      <div>
+        <div class="label">${meta.name} · прогноз</div>
+        <div class="value" style="color:${statusColor(score, meta.pass)}">≈ ${score} / 100</div>
+      </div>
+      <div style="text-align:right">
+        <div class="label">Порог</div>
+        <div class="value" style="font-size:18px;color:var(--muted)">${meta.pass}</div>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat know  ${ui.filter==="know"?"active":""}"  data-action="filter" data-f="know"><div class="v">${c.know}</div><div class="l">✅</div></div>
+      <div class="stat learn ${ui.filter==="learn"?"active":""}" data-action="filter" data-f="learn"><div class="v">${c.learn}</div><div class="l">📈</div></div>
+      <div class="stat weak  ${ui.filter==="weak"?"active":""}"  data-action="filter" data-f="weak"><div class="v">${c.weak}</div><div class="l">❌</div></div>
+      <div class="stat none  ${ui.filter==="none"?"active":""}"  data-action="filter" data-f="none"><div class="v">${c.none}</div><div class="l">⚪</div></div>
+    </div>
+    <div class="bar-wrap">
+      <div class="bar">
+        <span style="width:${barKnow}%;background:var(--ok)"></span>
+        <span style="width:${barLearn}%;background:var(--warn)"></span>
+        <span style="width:${barWeak}%;background:var(--bad)"></span>
+      </div>
+      <div class="bar-info">Первичные: ${prim.toFixed(1)} / ${meta.maxPrimary} · разметка ${c.know+c.learn+c.weak} из ${totalTasks} · ⏱ ${fmtDuration(totalStudySeconds(subj))}</div>
+    </div>
+    <div class="row">
+      <select data-action="sort">
+        <option value="num"    ${ui.sort==="num"?"selected":""}>по номеру</option>
+        <option value="weight" ${ui.sort==="weight"?"selected":""}>по весу</option>
+        <option value="status" ${ui.sort==="status"?"selected":""}>по статусу</option>
+      </select>
+      <input type="text" placeholder="🔍 Поиск..." data-action="search" value="${esc(ui.query)}">
+    </div>
+    <div id="taskList">${rows.join("") || '<div class="center">Ничего не найдено</div>'}</div>
+    <div class="btn-row" style="margin-top:14px">
+      <button class="btn" data-action="plan">📋 План</button>
+      <button class="btn" data-action="export">⬇️ Экспорт</button>
+      <button class="btn" data-action="import">⬆️ Импорт</button>
+      <button class="btn danger" data-action="reset">🗑 Сброс</button>
+    </div>
+  `;
+}
+
+// ===================== RENDER: GOALS =====================
+function renderGoals() {
+  const scores = {};
+  for (const k of Object.keys(SUBJECTS)) scores[k] = testScore(k, data.state[k]);
+  const total = Object.values(scores).reduce((a,b)=>a+b,0);
+  const mini = Object.entries(SUBJECTS).map(([k, m]) =>
+    `<div class="stat" style="pointer-events:none">
+       <div class="v" style="color:${statusColor(scores[k], m.pass)}">${scores[k]}</div>
+       <div class="l">${m.name}</div>
+     </div>`).join("");
+
+  const active = data.goals.active;
+  let goalsHtml = "";
+  for (const goal of active) {
+    const univ = UNIVERSITIES[goal.univ];
+    if (!univ) continue;
+    const prog = univ.programs.find(p => p.code === goal.code);
+    if (!prog) continue;
+    const [cur, needed, diff, status] = goalGap(scores, goal);
+    const statusText = {
+      reached: "✅ Ты проходишь!",
+      close:   `🔥 Осталось ${diff} баллов`,
+      medium:  `📈 Нужно ещё ${diff} баллов`,
+      far:     `❌ Не хватает ${diff} баллов`,
+      unavailable: "— таких мест нет в наборе",
+    }[status] || "?";
+    const typeLabel = goal.type === "budget" ? "🎓 Бюджет" : "💰 Платное";
+    const frac = needed > 0 ? Math.min(cur/needed, 1) * 100 : 0;
+    const recs = goalRecommendations(scores, goal).slice(0, 6);
+    const recsHtml = recs.length
+      ? `<div class="recs"><b style="color:var(--accent)">💡 Что подтянуть:</b>${
+          recs.map(r => `<div>${STATUS_META[r.status].sym} ${esc(r.subject)} №${r.n}: ${esc(r.topic)} (+${r.gain.toFixed(1)})</div>`).join("")
+        }</div>`
+      : (status !== "reached" && status !== "unavailable"
+          ? `<div class="recs" style="color:var(--ok)">Все доступные задачи уже «✅» — красава!</div>` : "");
+    const colorMap = { reached:"var(--ok)", close:"var(--warn)", medium:"var(--gold)", far:"var(--bad)", unavailable:"var(--muted)" };
+    goalsHtml += `
+      <div class="goal-card ${status}">
+        <div class="top">
+          <div>
+            <div class="name">${esc(goal.univ)} · ${esc(prog.code)}</div>
+            <div class="prog">${esc(prog.name)}</div>
+          </div>
+          <span style="font-size:11px;color:var(--muted);flex-shrink:0">${typeLabel}</span>
+        </div>
+        <div class="status" style="color:${colorMap[status]}">Прогноз: ${cur} / ${needed} · ${statusText}</div>
+        <div class="bar" style="color:${colorMap[status]}"><span style="width:${frac}%;background:${colorMap[status]}"></span></div>
+        ${prog.cost ? `<div class="prog" style="margin-top:6px">💰 ${prog.cost.toLocaleString("ru")} ₽/год</div>` : ""}
+        ${recsHtml}
+        <div style="text-align:right;margin-top:8px">
+          <button class="btn danger" style="padding:6px 10px;font-size:11px"
+                  data-action="removeGoal" data-univ="${esc(goal.univ)}" data-code="${goal.code}" data-type="${goal.type}">🗑 Убрать</button>
+        </div>
+      </div>`;
+  }
+  const univOptions = Object.keys(UNIVERSITIES).map(u => `<option value="${esc(u)}">${esc(u)}</option>`).join("");
+  return `
+    <div class="card score-card">
+      <div>
+        <div class="label">Сумма прогноза</div>
+        <div class="value" style="color:var(--gold)">${total} / 300</div>
+      </div>
+    </div>
+    <div class="stats">${mini}</div>
+    ${goalsHtml || '<div class="center">Пока нет целей — добавь первую 👇</div>'}
+    <h2>➕ Добавить цель</h2>
+    <div class="card">
+      <label>Вуз</label>
+      <select data-action="univSelect">${univOptions}</select>
+      <label>Направление</label>
+      <select data-action="progSelect"></select>
+      <label>Тип</label>
+      <select data-action="typeSelect">
+        <option value="budget">🎓 Бюджет</option>
+        <option value="paid">💰 Платное</option>
+      </select>
+      <button class="btn primary full" style="margin-top:12px" data-action="addGoal">Добавить</button>
+    </div>
+  `;
+}
+
+// ===================== RENDER: MOCKS =====================
+function renderMocks() {
+  const subjOptions = Object.entries(SUBJECTS).map(([k, m]) =>
+    `<option value="${k}">${m.name}</option>`).join("");
+  let listHtml = "";
+  for (const [subjK, meta] of Object.entries(SUBJECTS)) {
+    const ms = data.mocks.filter(m => m.subject === subjK).sort((a,b) => (a.date||"").localeCompare(b.date||""));
+    if (!ms.length) continue;
+    const W = 320, H = 80, PAD = 8;
+    let points = ms.map((m, i) => {
+      const prim = Math.max(0, Math.min(m.primary, meta.maxPrimary));
+      const test = meta.scale[prim];
+      const x = PAD + (W - 2*PAD) * (i / Math.max(ms.length - 1, 1));
+      const y = H - PAD - (H - 2*PAD) * (test / 100);
+      return { x, y, test, prim, date: m.date };
+    });
+    let path = points.map((p, i) => (i ? "L" : "M") + p.x + " " + p.y).join(" ");
+    const passY = H - PAD - (H - 2*PAD) * (meta.pass / 100);
+    const svg = `
+      <svg class="mock-chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+        <line x1="0" y1="${passY}" x2="${W}" y2="${passY}" stroke="var(--bad)" stroke-dasharray="3,3" stroke-width="1"/>
+        <text x="${W-4}" y="${passY-4}" fill="var(--bad)" font-size="9" text-anchor="end">порог ${meta.pass}</text>
+        <path d="${path}" fill="none" stroke="var(--accent)" stroke-width="2"/>
+        ${points.map(p => `<circle cx="${p.x}" cy="${p.y}" r="3" fill="var(--accent)"/>`).join("")}
+      </svg>`;
+    const rows = ms.slice(-5).reverse().map(m => {
+      const i = ms.indexOf(m);
+      const prim = Math.max(0, Math.min(m.primary, meta.maxPrimary));
+      const test = meta.scale[prim];
+      const col = test >= meta.pass ? "var(--ok)" : (test >= meta.pass*0.6 ? "var(--warn)" : "var(--bad)");
+      return `<div class="mock-row">
+        <span>${esc(m.date || "—")}</span>
+        <span style="color:${col}">перв. ${prim} → тест. ${test}</span>
+        <button data-action="delMock" data-idx="${i}" style="background:none;border:0;color:var(--bad);font-size:14px">✕</button>
+      </div>`;
+    }).join("");
+    listHtml += `
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+          <b>${meta.name}</b>
+          <span class="muted">${ms.length} записей</span>
+        </div>
+        ${svg}
+        ${rows}
+      </div>`;
+  }
+  return `
+    <h2>➕ Добавить пробник</h2>
+    <div class="card">
+      <label>Дата</label>
+      <input type="date" data-action="mockDate" value="${todayStr()}">
+      <label>Предмет</label>
+      <select data-action="mockSubject">${subjOptions}</select>
+      <label>Первичный балл</label>
+      <input type="number" data-action="mockPrimary" min="0" value="0" inputmode="numeric">
+      <div class="muted" id="mockPreview" style="margin-top:6px">→ 0 тест. баллов</div>
+      <button class="btn primary full" style="margin-top:12px" data-action="addMock">Добавить</button>
+    </div>
+    ${listHtml || '<div class="center">Пока нет записей</div>'}
+  `;
+}
+
+// ===================== RENDER: SUMMARY =====================
+function renderSummary() {
+  const scores = {};
+  for (const k of Object.keys(SUBJECTS)) scores[k] = testScore(k, data.state[k]);
+  const total = Object.values(scores).reduce((a,b)=>a+b,0);
+  const colTotal = total >= 230 ? "var(--ok)" : total >= 180 ? "var(--warn)" : "var(--bad)";
+  const cards = Object.entries(SUBJECTS).map(([k, m]) => {
+    const sc = scores[k];
+    const c = counts(data.state[k], m.tasks);
+    const prim = estPrimary(k, data.state[k]);
+    const time = totalStudySeconds(k);
+    return `
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <b>${m.name}</b>
+          <span style="font-size:20px;font-weight:800;color:${statusColor(sc, m.pass)}">≈ ${sc}</span>
+        </div>
+        <div class="muted" style="margin-top:4px">✅${c.know} · 📈${c.learn} · ❌${c.weak} · ⚪${c.none}</div>
+        <div class="muted" style="margin-top:2px">Первичные: ${prim.toFixed(1)} / ${m.maxPrimary} · ⏱ ${fmtDuration(time)}</div>
+      </div>`;
+  }).join("");
+  const todaySec = totalStudySeconds(null, todayStr());
+  const week = new Date(); week.setDate(week.getDate() - 7);
+  const weekStr = `${week.getFullYear()}-${String(week.getMonth()+1).padStart(2,"0")}-${String(week.getDate()).padStart(2,"0")}`;
+  const weekSec = totalStudySeconds(null, weekStr);
+  const allSec = totalStudySeconds();
+  const ach = computeAchievements();
+  const unlockedCount = ach.filter(a => a[3]).length;
+  const achHtml = ach.map(([icon, name, desc, ok]) => `
+    <div class="ach ${ok ? "unlocked" : "locked"}">
+      <div class="icon">${icon}</div>
+      <div>
+        <div class="name">${ok ? "" : "🔒 "}${name}</div>
+        <div class="desc">${desc}</div>
+      </div>
+    </div>`).join("");
+  const sug = pickNextTask();
+  const sugHtml = sug ? `
+    <div class="card" style="border-color:var(--purple)">
+      <b style="color:var(--purple)">💡 С чего начать прямо сейчас</b>
+      <div style="margin-top:6px">${esc(sug.subjectName)} · №${sug.n} — ${esc(sug.topic)}</div>
+      <div class="muted">Вес: ${sug.pts} перв. · статус: ${STATUS_META[sug.status].sym} ${STATUS_META[sug.status].label}</div>
+      <button class="btn primary" style="margin-top:8px" data-action="gotoTask" data-subj="${sug.subj}">→ Перейти</button>
+    </div>` : "";
+  return `
+    <div class="card score-card">
+      <div>
+        <div class="label">Итого</div>
+        <div class="value" style="color:${colTotal}">${total} / 300</div>
+      </div>
+      <div style="text-align:right">
+        <div class="label">До экзамена</div>
+        <div class="value" style="font-size:20px;color:var(--warn)">${daysUntilExam()} дн.</div>
+      </div>
+    </div>
+    ${cards}
+    <div class="card">
+      <b style="color:var(--accent)">🔥 Статистика занятий</b>
+      <div style="margin-top:6px">Сегодня: ${fmtDuration(todaySec)} · За 7 дней: ${fmtDuration(weekSec)}</div>
+      <div>Всего: ${fmtDuration(allSec)} · Стрик: <b style="color:var(--gold)">${data.streak.count || 0} дн.</b></div>
+    </div>
+    ${sugHtml}
+    <h2>🏆 Достижения (${unlockedCount}/${ach.length})</h2>
+    <div class="ach-grid">${achHtml}</div>
+  `;
+}
+
+// ===================== RENDER =====================
+function render() {
+  document.querySelectorAll("#nav button").forEach(b => {
+    b.classList.toggle("active", b.dataset.view === ui.view);
+  });
+  const el = document.getElementById("view");
+  if (ui.view === "tasks") el.innerHTML = renderTasks();
+  else if (ui.view === "goals") { el.innerHTML = renderGoals(); requestAnimationFrame(populatePrograms); }
+  else if (ui.view === "mocks") el.innerHTML = renderMocks();
+  else if (ui.view === "summary") el.innerHTML = renderSummary();
+  updateHeader();
+}
+function populatePrograms() {
+  const sel = document.querySelector('[data-action="progSelect"]');
+  const univSel = document.querySelector('[data-action="univSelect"]');
+  if (!sel || !univSel) return;
+  const u = UNIVERSITIES[univSel.value];
+  if (!u) return;
+  sel.innerHTML = u.programs.map(p =>
+    `<option value="${p.code}">${esc(p.code)} — ${esc(p.name)}</option>`).join("");
+}
+
+// ===================== MODAL =====================
+function openModal(html) {
+  document.getElementById("modalBox").innerHTML = html;
+  document.getElementById("modal").classList.remove("hidden");
+}
+function closeModal() {
+  document.getElementById("modal").classList.add("hidden");
+}
+document.getElementById("modal").addEventListener("click", e => {
+  if (e.target.id === "modal") closeModal();
+  const el = e.target.closest("[data-action]");
+  if (!el) return;
+  const a = el.dataset.action;
+  if (a === "closeModal") closeModal();
+  else if (a === "saveNote") {
+    const n = el.dataset.num;
+    const v = document.getElementById("noteInput").value.trim();
+    if (v) data.notes[ui.subject][n] = v;
+    else delete data.notes[ui.subject][n];
+    saveData(); closeModal(); render();
+  }
+});
+
+// ===================== NAV =====================
+document.getElementById("nav").addEventListener("click", e => {
+  const b = e.target.closest("button[data-view]");
+  if (!b) return;
+  ui.view = b.dataset.view;
+  render();
+});
+
+// ===================== VIEW EVENTS =====================
+document.getElementById("view").addEventListener("click", e => {
+  const el = e.target.closest("[data-action]");
+  if (!el) return;
+  const action = el.dataset.action;
+
+  if (action === "setSubject") {
+    ui.subject = el.dataset.subj;
+    ui.filter = "all";
+    ui.query = "";
+    render();
+  }
+  else if (action === "filter") {
+    const f = el.dataset.f;
+    ui.filter = ui.filter === f ? "all" : f;
+    render();
+  }
+  else if (action === "mark") {
+    const n = el.dataset.num, st = el.dataset.st;
+    const subj = ui.subject;
+    if (data.state[subj][n] === st) delete data.state[subj][n];
+    else { data.state[subj][n] = st; registerStudyDay(); }
+    saveData();
+    render();
+  }
+  else if (action === "gotoTask") {
+    ui.view = "tasks";
+    ui.subject = el.dataset.subj;
+    ui.filter = "all"; ui.query = "";
+    render();
+  }
+  else if (action === "addGoal") {
+    const univSel = document.querySelector('[data-action="univSelect"]');
+    const progSel = document.querySelector('[data-action="progSelect"]');
+    const typeSel = document.querySelector('[data-action="typeSelect"]');
+    const goal = { univ: univSel.value, code: progSel.value, type: typeSel.value };
+    if (data.goals.active.some(g => g.univ===goal.univ && g.code===goal.code && g.type===goal.type)) {
+      alert("Такая цель уже есть"); return;
+    }
+    data.goals.active.push(goal);
+    saveData(); render();
+  }
+  else if (action === "removeGoal") {
+    const { univ, code, type } = el.dataset;
+    data.goals.active = data.goals.active.filter(g => !(g.univ===univ && g.code===code && g.type===type));
+    saveData(); render();
+  }
+  else if (action === "addMock") {
+    const date = document.querySelector('[data-action="mockDate"]').value;
+    const subj = document.querySelector('[data-action="mockSubject"]').value;
+    const prim = parseInt(document.querySelector('[data-action="mockPrimary"]').value, 10);
+    if (!date || !SUBJECTS[subj] || isNaN(prim) || prim < 0 || prim > SUBJECTS[subj].maxPrimary) {
+      alert("Проверь данные"); return;
+    }
+    data.mocks.push({ date, subject: subj, primary: prim });
+    registerStudyDay(); saveData(); render();
+  }
+  else if (action === "delMock") {
+    const i = parseInt(el.dataset.idx, 10);
+    if (!isNaN(i)) { data.mocks.splice(i, 1); saveData(); render(); }
+  }
+  else if (action === "plan") {
+    const subj = ui.subject;
+    const meta = SUBJECTS[subj];
+    const st = data.state[subj];
+    const c = counts(st, meta.tasks);
+    const lines = [`📋 ПЛАН: ${meta.name}`, `Прогноз: ≈${testScore(subj, st)}/100 (порог ${meta.pass})`, ""];
+    if (c.weak) {
+      lines.push("❌ Сначала с нуля:");
+      for (const n of Object.keys(meta.tasks).map(Number).sort((a,b)=>a-b))
+        if (st[n] === "weak") lines.push(`   ${n}. ${meta.tasks[n][0]} (${meta.tasks[n][1]} б.)`);
+      lines.push("");
+    }
+    if (c.learn) {
+      lines.push("📈 Затем закрепить:");
+      for (const n of Object.keys(meta.tasks).map(Number).sort((a,b)=>a-b))
+        if (st[n] === "learn") lines.push(`   ${n}. ${meta.tasks[n][0]} (${meta.tasks[n][1]} б.)`);
+      lines.push("");
+    }
+    if (!c.weak && !c.learn) lines.push("Размечай задачи 📈 и ❌ — здесь появится план.\n");
+    lines.push("💎 Самые жирные:");
+    for (const n of Object.keys(meta.tasks).map(Number).sort((a,b)=>meta.tasks[b][1]-meta.tasks[a][1]).slice(0,5))
+      lines.push(`   ${n}. ${meta.tasks[n][0]} — ${meta.tasks[n][1]} перв.`);
+    openModal(`<h3>📋 План: ${esc(meta.name)}</h3>
+      <pre style="white-space:pre-wrap;font-family:inherit;font-size:13px;margin:0">${esc(lines.join("\n"))}</pre>
+      <div class="modal-actions"><button class="btn" data-action="closeModal">Закрыть</button></div>`);
+  }
+  else if (action === "export") {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type:"application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `ege_tracker_${todayStr()}.json`;
+    a.click();
+  }
+  else if (action === "import") {
+    const input = document.createElement("input");
+    input.type = "file"; input.accept = ".json,application/json";
+    input.onchange = () => {
+      const f = input.files[0]; if (!f) return;
+      const r = new FileReader();
+      r.onload = () => {
+        try {
+          const parsed = JSON.parse(r.result);
+          if (confirm("Заменить текущий прогресс импортированным?")) {
+            const base = blankData();
+            base.state = { ...base.state, ...(parsed.state||{}) };
+            base.notes = { ...base.notes, ...(parsed.notes||{}) };
+            base.studyLog = parsed.studyLog || [];
+            base.mocks    = parsed.mocks    || [];
+            base.streak   = parsed.streak   || base.streak;
+            base.goals    = parsed.goals    || base.goals;
+            data = base; saveData(); render();
+          }
+        } catch (err) { alert("Ошибка файла: " + err.message); }
+      };
+      r.readAsText(f);
+    };
+    input.click();
+  }
+  else if (action === "reset") {
+    if (confirm(`Сбросить прогресс по «${SUBJECTS[ui.subject].name}»?`)) {
+      data.state[ui.subject] = {};
+      data.notes[ui.subject] = {};
+      saveData(); render();
+    }
+  }
+  else if (action === "editNote") {
+    const n = el.dataset.num;
+    const subj = ui.subject;
+    const cur = data.notes[subj][n] || "";
+    openModal(`
+      <h3>📝 Заметка к №${n}</h3>
+      <div class="muted" style="margin-bottom:8px">${esc(SUBJECTS[subj].tasks[n][0])}</div>
+      <textarea id="noteInput" placeholder="Что запомнить...">${esc(cur)}</textarea>
+      <div class="modal-actions">
+        <button class="btn" data-action="closeModal">Отмена</button>
+        <button class="btn primary" data-action="saveNote" data-num="${n}">Сохранить</button>
+      </div>`);
+    setTimeout(() => document.getElementById("noteInput")?.focus(), 50);
+  }
+});
+
+document.getElementById("view").addEventListener("change", e => {
+  const el = e.target.closest("[data-action]");
+  if (!el) return;
+  const a = el.dataset.action;
+  if (a === "sort") { ui.sort = el.value; render(); }
+  else if (a === "univSelect") populatePrograms();
+});
+
+document.getElementById("view").addEventListener("input", e => {
+  const el = e.target.closest('[data-action="search"]');
+  if (el) {
+    ui.query = el.value.trim().toLowerCase();
+    const list = document.getElementById("taskList");
+    if (list) {
+      const subj = ui.subject;
+      const meta = SUBJECTS[subj];
+      const st = data.state[subj] || {};
+      const rows = [];
+      for (const n of Object.keys(meta.tasks).map(Number).sort((a,b)=>a-b)) {
+        const s = st[n] || "none";
+        if (ui.filter !== "all" && s !== ui.filter) continue;
+        const [topic, pts] = meta.tasks[n];
+        if (ui.query && !topic.toLowerCase().includes(ui.query)) continue;
+        const note = (data.notes[subj] || {})[n] || "";
+        const scale = meta.scale[Math.min(pts, meta.maxPrimary)];
+        rows.push(`
+          <div class="task ${s}" data-num="${n}">
+            <div class="num">${n}</div>
+            <div class="info" data-action="editNote" data-num="${n}">
+              <div class="title">${esc(topic)}${note?" 📝":""}</div>
+              <div class="meta">${pts} перв. · ≈${scale} тест.</div>
+            </div>
+            <div class="actions">
+              ${["know","learn","weak"].map(x =>
+                `<button data-action="mark" data-num="${n}" data-st="${x}" class="${s===x?"active":""}">${STATUS_META[x].sym}</button>`
+              ).join("")}
+            </div>
+          </div>`);
+      }
+      list.innerHTML = rows.join("") || '<div class="center">Ничего не найдено</div>';
+    }
+  }
+  const mP = e.target.closest('[data-action="mockPrimary"]');
+  if (mP) {
+    const subj = document.querySelector('[data-action="mockSubject"]').value;
+    const meta = SUBJECTS[subj];
+    const p = Math.max(0, Math.min(parseInt(mP.value) || 0, meta.maxPrimary));
+    const prev = document.getElementById("mockPreview");
+    if (prev) prev.textContent = `→ ${meta.scale[p]} тест. баллов`;
+  }
+});
+
+// ===================== ТАЙМЕР =====================
+const timer = { running:false, remaining:25*60, mode:"focus", subject:"math", elapsed:0, id:null };
+document.getElementById("timerBtn").addEventListener("click", () => {
+  const subjOpts = Object.entries(SUBJECTS).map(([k, m]) =>
+    `<option value="${k}" ${k===timer.subject?"selected":""}>${m.name}</option>`).join("");
+  const mins = Math.floor(timer.remaining / 60);
+  const secs = timer.remaining % 60;
+  openModal(`
+    <h3 style="text-align:center">⏱ Помодоро</h3>
+    <select id="timerSubject" style="margin-bottom:10px">${subjOpts}</select>
+    <div class="timer-time" id="timerTime">${String(mins).padStart(2,"0")}:${String(secs).padStart(2,"0")}</div>
+    <div class="timer-modes">
+      <button data-action="tmode" data-m="focus" class="${timer.mode==="focus"?"active":""}">🎯 25</button>
+      <button data-action="tmode" data-m="short" class="${timer.mode==="short"?"active":""}">☕ 5</button>
+      <button data-action="tmode" data-m="long"  class="${timer.mode==="long"?"active":""}">🌴 15</button>
+    </div>
+    <div class="timer-actions">
+      <button class="btn primary" id="timerStart">▶ Старт</button>
+      <button class="btn" id="timerStop">■ Стоп</button>
+    </div>
+    <div class="timer-status" id="timerStatus"></div>
+    <div class="modal-actions" style="margin-top:10px">
+      <button class="btn" data-action="closeModal">Закрыть</button>
+    </div>
+  `);
+  const renderTime = () => {
+    const el = document.getElementById("timerTime"); if (!el) return;
+    const r = Math.max(0, timer.remaining);
+    const m = Math.floor(r / 60), s = r % 60;
+    el.textContent = `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+  };
+  const start = () => {
+    if (timer.running) return;
+    timer.running = true;
+    const b = document.getElementById("timerStart"); if (b) b.textContent = "⏸ Пауза";
+    const s = document.getElementById("timerStatus"); if (s) s.textContent = "Идёт сессия...";
+    tick();
+  };
+  const pause = () => {
+    timer.running = false;
+    clearTimeout(timer.id);
+    const b = document.getElementById("timerStart"); if (b) b.textContent = "▶ Продолжить";
+    const s = document.getElementById("timerStatus"); if (s) s.textContent = "Пауза";
+  };
+  const finish = (auto) => {
+    timer.running = false;
+    clearTimeout(timer.id);
+    if (timer.mode === "focus" && timer.elapsed >= 60) {
+      data.studyLog.push({ date: todayStr(), subject: timer.subject, seconds: timer.elapsed, task: null });
+      registerStudyDay(); saveData();
+      const s = document.getElementById("timerStatus");
+      if (s) s.textContent = `✅ Записано: ${fmtDuration(timer.elapsed)}`;
+    } else if (auto) {
+      const s = document.getElementById("timerStatus"); if (s) s.textContent = "⏰ Время вышло!";
+    }
+    timer.elapsed = 0;
+    timer.remaining = { focus:25*60, short:5*60, long:15*60 }[timer.mode];
+    renderTime();
+    const b = document.getElementById("timerStart"); if (b) b.textContent = "▶ Старт";
+  };
+  const tick = () => {
+    if (!timer.running) return;
+    timer.remaining--;
+    timer.elapsed++;
+    renderTime();
+    if (timer.remaining <= 0) { finish(true); return; }
+    timer.id = setTimeout(tick, 1000);
+  };
+  const startBtn = document.getElementById("timerStart");
+  const stopBtn  = document.getElementById("timerStop");
+  if (startBtn) startBtn.onclick = () => timer.running ? pause() : start();
+  if (stopBtn)  stopBtn.onclick  = () => finish(false);
+  document.querySelectorAll('[data-action="tmode"]').forEach(b => {
+    b.onclick = () => {
+      if (timer.running) return;
+      timer.mode = b.dataset.m;
+      timer.remaining = { focus:25*60, short:5*60, long:15*60 }[timer.mode];
+      timer.elapsed 
